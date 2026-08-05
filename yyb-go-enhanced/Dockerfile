@@ -1,6 +1,6 @@
 FROM golang:1.23-alpine AS builder
 
-ARG SOURCE_REPOSITORY="https://github.com/REPLACE_WITH_YOUR_USERNAME/YYB-Go-Enhanced.git"
+ARG SOURCE_REPOSITORY="https://github.com/windowlife/YYB-Go-Enhanced.git"
 ARG SOURCE_BRANCH="main"
 
 RUN apk add --no-cache \
