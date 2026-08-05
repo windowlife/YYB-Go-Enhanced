@@ -1,0 +1,49 @@
+name: "YYB Go Enhanced"
+version: "1.0.0"
+slug: "yyb_go_enhanced"
+description: "应用宝协议服务，支持微信扫码登录、OpenID 管理、凭据续期和青龙任务管理"
+url: "https://github.com/你的用户名/YYB-Go-Enhanced"
+
+arch:
+  - amd64
+  - aarch64
+
+init: false
+startup: application
+boot: auto
+stage: experimental
+
+ingress: true
+ingress_port: 8099
+ingress_entry: /
+panel_icon: mdi:qrcode-scan
+panel_title: "YYB Go"
+panel_admin: true
+
+# 默认不映射到 HAOS 主机，避免绕过 Home Assistant 登录直接访问。
+# 同一 HAOS 内的其他应用仍可通过内部网络访问容器的 8000 端口。
+ports:
+  "8000/tcp": null
+
+ports_description:
+  "8000/tcp": "YYB API，可选；外部青龙需要访问时才启用"
+
+backup: cold
+
+options:
+  keepalive_interval: "30m"
+  keepalive_ahead: "45m"
+  ql_url: "http://homeassistant.local:5700"
+  ql_client_id: ""
+  ql_client_secret: ""
+  yyb_qinglong_server: ""
+  yyb_qinglong_repo: "SuperNaiBA_YYB-GO-Script"
+
+schema:
+  keepalive_interval: str
+  keepalive_ahead: str
+  ql_url: str
+  ql_client_id: str
+  ql_client_secret: password
+  yyb_qinglong_server: str
+  yyb_qinglong_repo: str
