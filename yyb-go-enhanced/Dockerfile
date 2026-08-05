@@ -1,7 +1,4 @@
-FROM golang:1.23-alpine AS builder
-
-ARG SOURCE_REPOSITORY="https://github.com/windowlife/YYB-Go-Enhanced.git"
-ARG SOURCE_BRANCH="main"
+﻿FROM golang:1.23-alpine AS builder
 
 RUN apk add --no-cache \
       git \
@@ -9,16 +6,17 @@ RUN apk add --no-cache \
 
 WORKDIR /src
 
-RUN git clone \
-      --depth=1 \
-      --branch="${SOURCE_BRANCH}" \
-      "${SOURCE_REPOSITORY}" \
-      .
-
 ENV GOPROXY=https://goproxy.cn,direct
 
-RUN go mod download && \
-    CGO_ENABLED=0 \
+# 先复制依赖文件，提高后续构建缓存命中率
+COPY src/go.mod src/go.sum ./
+
+RUN go mod download
+
+# 直接使用 HAOS 已经下载好的本地源码
+COPY src/ ./
+
+RUN CGO_ENABLED=0 \
     GOOS=linux \
     go build \
       -trimpath \
@@ -59,8 +57,7 @@ RUN chmod 755 \
     && chmod 644 \
       /etc/nginx/http.d/default.conf \
       /etc/nginx/yyb/ingress.js \
-    && chown -R yyb:yyb \
-      /app
+    && chown -R yyb:yyb /app
 
 EXPOSE 8000
 EXPOSE 8099
