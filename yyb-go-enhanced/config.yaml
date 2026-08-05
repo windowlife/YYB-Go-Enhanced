@@ -1,8 +1,10 @@
 name: "YYB Go Enhanced"
-version: "1.0.1"
+version: "1.0.2"
 slug: "yyb_go_enhanced"
 description: "应用宝协议服务，支持微信扫码登录、OpenID 管理、凭据续期和青龙任务管理"
 url: "https://github.com/windowlife/YYB-Go-Enhanced"
+
+image: "ghcr.io/windowlife/yyb-go-enhanced"
 
 arch:
   - amd64
@@ -11,24 +13,20 @@ arch:
 init: false
 startup: application
 boot: auto
-stage: experimental
 
 ingress: true
 ingress_port: 8099
 ingress_entry: /
+
 panel_icon: mdi:qrcode-scan
 panel_title: "YYB Go"
 panel_admin: true
 
-# 默认不映射到 HAOS 主机，避免绕过 Home Assistant 登录直接访问。
-# 同一 HAOS 内的其他应用仍可通过内部网络访问容器的 8000 端口。
 ports:
-  "8000/tcp": null
+  8000/tcp: null
 
 ports_description:
-  "8000/tcp": "YYB API，可选；外部青龙需要访问时才启用"
-
-backup: cold
+  8000/tcp: "YYB API；仅当外部青龙需要访问时才映射"
 
 options:
   keepalive_interval: "30m"

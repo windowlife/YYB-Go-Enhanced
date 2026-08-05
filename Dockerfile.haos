@@ -1,0 +1,66 @@
+FROM golang:1.23-alpine AS builder
+
+WORKDIR /src
+
+RUN apk add --no-cache \
+      ca-certificates
+
+ENV GOPROXY=https://goproxy.cn,direct
+
+# 先复制依赖文件，方便使用构建缓存
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+# 复制仓库根目录源码。
+# 上游以后增加新的代码目录时，也会自动包含。
+COPY . .
+
+RUN CGO_ENABLED=0 \
+    GOOS=linux \
+    go build \
+      -trimpath \
+      -ldflags="-s -w" \
+      -o /out/yyb-go \
+      ./cmd/yyb-go
+
+
+FROM ghcr.io/home-assistant/base:3.23
+
+RUN apk add --no-cache \
+      nginx \
+      ca-certificates \
+      su-exec \
+    && addgroup -S yyb \
+    && adduser -S -G yyb -h /app yyb \
+    && mkdir -p \
+         /app \
+         /run/nginx \
+         /etc/nginx/yyb
+
+WORKDIR /app
+
+COPY --from=builder /out/yyb-go /app/yyb-go
+COPY --from=builder /src/resource /app/resource-default
+
+COPY yyb-go-enhanced/run.sh /run.sh
+COPY yyb-go-enhanced/ingress.conf /etc/nginx/http.d/default.conf
+COPY yyb-go-enhanced/ingress.js /etc/nginx/yyb/ingress.js
+
+RUN chmod 755 \
+      /run.sh \
+      /app/yyb-go \
+    && chmod 644 \
+      /etc/nginx/http.d/default.conf \
+      /etc/nginx/yyb/ingress.js \
+    && chown -R yyb:yyb /app
+
+EXPOSE 8000
+EXPOSE 8099
+
+LABEL \
+  org.opencontainers.image.title="YYB Go Enhanced for Home Assistant" \
+  org.opencontainers.image.description="YYB Go Enhanced Home Assistant OS application" \
+  org.opencontainers.image.source="https://github.com/windowlife/YYB-Go-Enhanced"
+
+CMD ["/run.sh"]
